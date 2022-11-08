@@ -69,6 +69,24 @@ app.post("/messages", (req, res) => {
   res.sendStatus(201);
 });
 
+app.post("/status", (req, res) => {
+  const name = req.headers.user;
+  const hasUser = participants.find((user) => user.name === name);
+
+  if (!hasUser) {
+    res.sendStatus(404);
+    return;
+  }
+
+  participants.forEach((user) => {
+    if (user.name === name) {
+      user.lastStatus = Date.now();
+    }
+  });
+
+  res.sendStatus(200);
+});
+
 app.listen(5000, () => {
   console.log("Server running on 5000...");
 });
