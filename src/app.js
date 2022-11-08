@@ -39,7 +39,16 @@ app.get("/participants", (req, res) => {
 });
 
 app.get("/messages", (req, res) => {
-  res.send(messages);
+  const limit = req.query.limit;
+  const user = req.headers.user;
+
+  const messagesUser = messages.filter((message) => message.type === "status" || message.to === "Todos" || message.from === user || message.to === user);
+
+  if (limit) {
+    res.send(messagesUser.slice(messages.length - limit, messages.length));
+    return;
+  }
+  res.send(messagesUser);
 });
 
 app.post("/messages", (req, res) => {
