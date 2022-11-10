@@ -10,15 +10,15 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/participants", async (req, res) => {
-  const { username } = req.body;
-  const validation = schema.validate({ username });
+  const { name } = req.body;
+  const validation = schema.validate({ username: name });
 
   if (validation.error) {
     res.sendStatus(422);
     return;
   }
   try {
-    const userExists = await db.collection("participants").findOne({ name: username });
+    const userExists = await db.collection("participants").findOne({ name });
 
     if (userExists) {
       res.sendStatus(409);
@@ -27,8 +27,8 @@ app.post("/participants", async (req, res) => {
 
     const time = dayjs().format("HH:mm:ss");
 
-    await db.collection("participants").insertOne({ name: username, lastStatus: Date.now() });
-    await db.collection("messages").insertOne({ from: username, to: "Todos", text: "entra na sala...", type: "status", time });
+    await db.collection("participants").insertOne({ name, lastStatus: Date.now() });
+    await db.collection("messages").insertOne({ from: name, to: "Todos", text: "entra na sala...", type: "status", time });
 
     res.sendStatus(201);
   } catch (err) {
