@@ -53,14 +53,13 @@ app.post("/participants", async (req, res) => {
   }
 });
 
-app.get("/participants", (req, res) => {
-  db.collection("participants")
-    .find()
-    .toArray()
-    .then((participants) => {
-      res.send(participants);
-    })
-    .catch((err) => console.log(err));
+app.get("/participants", async (req, res) => {
+  try {
+    const participants = await db.collection("participants").find().toArray();
+    res.send(participants);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 app.get("/messages", (req, res) => {
