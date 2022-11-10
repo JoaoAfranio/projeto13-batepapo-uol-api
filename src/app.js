@@ -108,27 +108,22 @@ app.post("/messages", async (req, res) => {
   }
 });
 
-app.post("/status", (req, res) => {
+app.post("/status", async (req, res) => {
   const name = req.headers.user;
 
-  db.collection("participants")
-    .findOne({ name })
-    .then((user) => {
-      if (!user) {
-        res.sendStatus(404);
-        return;
-      }
+  try {
+    const user = await db.collection("participants").findOne({ name });
 
-      db.collection("participants")
-        .updateOne({ name: user.name }, { $set: { lastStatus: Date.now() } })
-        .then(() => {
-          res.sendStatus(200);
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.sendStatus(500);
-    });
+    if (!user) {
+      res.sendStatus(404);
+      return;
+    }
+
+    await db.collection("participants").updateOne({ name: user.name }, { $set: { lastStatus: Date.now() } });
+    res.sendStatus(200);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 setInterval(() => {
