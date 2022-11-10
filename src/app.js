@@ -1,25 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dayjs from "dayjs";
-import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
+
+import db from "../utils/database.js";
 import schema from "../utils/validations.js";
-
-dotenv.config();
-
-const participants = [];
-const messages = [];
-
-let db;
-
-const mongoClient = new MongoClient(process.env.MONGO_URI);
-
-mongoClient
-  .connect()
-  .then(() => {
-    db = mongoClient.db("batepapo");
-  })
-  .catch((err) => console.log(err));
 
 const app = express();
 app.use(cors());
@@ -126,26 +110,20 @@ app.post("/status", async (req, res) => {
   }
 });
 
-setInterval(() => {
-  db.collection("participants")
-    .find()
-    .toArray()
-    .then((participants) => {
-      participants.forEach((p) => {
-        const lastCheck = Math.ceil(Date.now() - 10000);
-        const name = p.name;
+setInterval(async () => {
+  const participants = await db.collection("participants").find().toArray();
 
-        if (p.lastStatus < lastCheck) {
-          db.collection("participants")
-            .deleteOne({ name })
-            .then(() => {
-              const time = dayjs().format("HH:mm:ss");
+  for (const p of participants) {
+    const lastCheck = Math.ceil(Date.now() - 10000);
+    const name = p.name;
 
-              db.collection("messages").insertOne({ from: name, to: "Todos", text: "sai da sala...", type: "status", time: time });
-            });
-        }
-      });
-    });
+    if (p.lastStatus < lastCheck) {
+      await db.collection("participants").deleteOne({ name });
+
+      const time = dayjs().format("HH:mm:ss");
+      await db.collection("messages").insertOne({ from: name, to: "Todos", text: "sai da sala...", type: "status", time: time });
+    }
+  }
 }, 15000);
 
 app.listen(5000, () => {
