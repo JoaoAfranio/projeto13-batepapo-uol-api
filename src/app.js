@@ -62,26 +62,22 @@ app.get("/participants", async (req, res) => {
   }
 });
 
-app.get("/messages", (req, res) => {
+app.get("/messages", async (req, res) => {
   const limit = req.query.limit;
   const user = req.headers.user;
 
-  db.collection("messages")
-    .find()
-    .toArray()
-    .then((messages) => {
-      const messagesUser = messages.filter((message) => message.type === "status" || message.to === "Todos" || message.from === user || message.to === user);
+  try {
+    const messages = await db.collection("messages").find().toArray();
+    const messagesUser = messages.filter((message) => message.type === "status" || message.to === "Todos" || message.from === user || message.to === user);
 
-      if (limit) {
-        res.send(messagesUser.slice(messages.length - limit, messages.length));
-        return;
-      }
-      res.send(messagesUser);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.sendStatus(500);
-    });
+    if (limit) {
+      res.send(messagesUser.slice(messages.length - limit, messages.length));
+      return;
+    }
+    res.send(messagesUser);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 app.post("/messages", (req, res) => {
