@@ -80,7 +80,7 @@ app.get("/messages", async (req, res) => {
   }
 });
 
-app.post("/messages", (req, res) => {
+app.post("/messages", async (req, res) => {
   const { to, text, type } = req.body;
   const name = req.headers.user;
 
@@ -91,26 +91,21 @@ app.post("/messages", (req, res) => {
     return;
   }
 
-  db.collection("participants")
-    .findOne({ name })
-    .then((participant) => {
-      if (!participant) {
-        res.sendStatus(422);
-        return;
-      }
+  try {
+    const participant = await db.collection("participants").findOne({ name });
 
-      const time = dayjs().format("HH:mm:ss");
+    if (!participant) {
+      res.sendStatus(422);
+      return;
+    }
 
-      db.collection("messages")
-        .insertOne({ from: name, to, text, type, time })
-        .then(() => {
-          res.sendStatus(201);
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.sendStatus(500);
-    });
+    const time = dayjs().format("HH:mm:ss");
+    await db.collection("messages").insertOne({ from: name, to, text, type, time });
+
+    res.sendStatus(201);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 app.post("/status", (req, res) => {
