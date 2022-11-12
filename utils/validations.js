@@ -1,13 +1,13 @@
 import Joi from "joi";
 
-const schema = Joi.object({
-  username: Joi.string().alphanum(),
+const user = Joi.object({
+  username: Joi.string().alphanum().required(),
+});
 
-  to: Joi.string().alphanum(),
-  text: Joi.string(),
-  type: Joi.string().valid("message", "private_message"),
-})
-  .with("to", "text")
-  .with("text", "type");
+const message = Joi.object({
+  to: Joi.string().alphanum().required(),
+  text: Joi.string().required(),
+  type: Joi.string().valid("message", "private_message").required(),
+});
 
-export default schema;
+export { user, message };

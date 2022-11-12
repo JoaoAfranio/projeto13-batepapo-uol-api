@@ -3,7 +3,7 @@ import cors from "cors";
 import dayjs from "dayjs";
 
 import db from "../utils/database.js";
-import schema from "../utils/validations.js";
+import { user, message } from "../utils/validations.js";
 
 const app = express();
 app.use(cors());
@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body;
-  const validation = schema.validate({ username: name });
+  const validation = user.validate({ username: name });
 
   if (validation.error) {
     res.sendStatus(422);
@@ -68,7 +68,7 @@ app.post("/messages", async (req, res) => {
   const { to, text, type } = req.body;
   const name = req.headers.user;
 
-  const validation = schema.validate({ to, text, type });
+  const validation = message.validate({ to, text, type });
 
   if (validation.error) {
     res.sendStatus(422);
